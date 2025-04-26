@@ -1,8 +1,9 @@
 {
   "name": "js-auth-cli",
   "version": "1.0.0",
-  "description": "Node.JS OpenID &amp; SAML client for express framework",
+  "description": "Node.JS OpenID & SAML client for express framework",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/app.js"
@@ -19,10 +20,11 @@
   },
   "homepage": "https://github.com/ledav-perso/js-auth-cli#readme",
   "dependencies": {
+    "connect-redis": "^8.0.3",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "express-openid-connect": "^2.18.0",
     "express-session": "^1.18.1",
-    "passport": "^0.7.0",
-    "passport-openidconnect": "^0.1.2"
+    "redis": "^4.7.0"
   }
 }

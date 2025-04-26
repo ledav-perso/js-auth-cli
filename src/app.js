@@ -1,60 +1,77 @@
-require('dotenv').config();
-const express = require('express');
-const session = require('express-session');
-const passport = require('passport');
-const OpenIDConnectStrategy = require('passport-openidconnect').Strategy;
+import 'dotenv/config';
+import express from 'express';
+import session from 'express-session';
+import { createClient } from 'redis';
+import { auth } from 'express-openid-connect';
+import { RedisStore } from "connect-redis"
+
 
 const app = express();
 
-// Session
+// 🔌 Redis client
+const redisClient = createClient({
+    legacyMode: true,
+    url: process.env.REDIS_URL || 'redis://localhost:6379',
+});
+await redisClient.connect();
+
 app.use(session({
+    store: new RedisStore({ client: redisClient }),
     secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 24 * 60 * 60 * 1000, // 1 jour
+        secure: false, // true si HTTPS
+        httpOnly: true,
+    }
 }));
 
-// Passport setup
-passport.use('oidc', new OpenIDConnectStrategy({
-    issuer: process.env.OIDC_ISSUER,
-    authorizationURL: `${process.env.OIDC_ISSUER}/protocol/openid-connect/auth`,
-    tokenURL: `${process.env.OIDC_ISSUER}/protocol/openid-connect/token`,
-    userInfoURL: `${process.env.OIDC_ISSUER}/protocol/openid-connect/userinfo`,
+// 🔐 Auth OIDC config
+const config = {
+    authRequired: false,
+    auth0Logout: false,
+    secret: process.env.SESSION_SECRET,
+    baseURL: 'http://localhost:3000',
     clientID: process.env.OIDC_CLIENT_ID,
     clientSecret: process.env.OIDC_CLIENT_SECRET,
-    callbackURL: process.env.OIDC_CALLBACK_URL,
-    scope: 'openid profile email'
-}, function (issuer, sub, profile, accessToken, refreshToken, done) {
-    return done(null, profile);
-}));
+    issuerBaseURL: process.env.OIDC_ISSUER,
+    authorizationParams: {
+        response_type: 'code',
+        scope: 'openid profile email'
+    }
+};
 
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((user, done) => done(null, user));
-
-app.use(passport.initialize());
-app.use(passport.session());
+app.use(auth(config));
 
 // Routes
-app.get('/', (req, res) => res.send('Accueil'));
-
-app.get('/login', passport.authenticate('oidc'));
-
-app.get('/login/callback',
-    passport.authenticate('oidc', { failureRedirect: '/' }),
-    (req, res) => res.redirect('/profile')
-);
+app.get('/', (req, res) => {
+    res.send(req.oidc.isAuthenticated()
+        ? `<h2>Connecté</h2><a href="/profile">Profil</a><br><a href="/logout">Logout</a>`
+        : `<h2>Non connecté</h2><a href="/login">Login</a>`);
+});
 
 app.get('/profile', (req, res) => {
-    if (!req.isAuthenticated()) return res.redirect('/login');
-    res.json(req.user);
+    if (!req.oidc.isAuthenticated()) return res.redirect('/login');
+    res.json(req.oidc.user);
 });
 
 app.get('/logout', (req, res) => {
-    req.logout(() => {
-        res.redirect('/');
+    const idToken = req.oidc.idToken;
+    const redirectUri = 'http://localhost:3000/';
+    const issuer = process.env.OIDC_ISSUER;
+
+    let logoutUrl = `${issuer}/protocol/openid-connect/logout?post_logout_redirect_uri=${encodeURIComponent(redirectUri)}`;
+    if (idToken) {
+        logoutUrl += `&id_token_hint=${encodeURIComponent(idToken)}`;
+    }
+
+    req.session.destroy(() => {
+        res.redirect(logoutUrl);
     });
 });
 
-// Démarrer le serveur
+// Start server
 app.listen(3000, () => {
-    console.log('Serveur lancé sur http://localhost:3000');
+    console.log('🚀 Serveur Express + Redis sur http://localhost:3000');
 });
