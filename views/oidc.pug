@@ -1,0 +1,16 @@
+doctype html
+html
+  head
+    title Profil
+  body
+    h1 Profil OpenID Connect
+
+    // Affichage des données JSON
+    ul
+      li Nom : #{user.name}
+      li Email : #{user.email}
+      li Âge : #{user.age}
+
+    // Formulaire de déconnexion
+    form(action="/oidc/logout", method="post")
+      button(type="submit") Se déconnecter

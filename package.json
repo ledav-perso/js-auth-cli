@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/app.js"
+    "start": "node src/app.js",
+    "dev": "nodemon --ext js,pug src/app.js"
   },
   "repository": {
     "type": "git",
@@ -25,6 +26,10 @@
     "express": "^5.1.0",
     "express-openid-connect": "^2.18.0",
     "express-session": "^1.18.1",
+    "pug": "^3.0.3",
     "redis": "^4.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }

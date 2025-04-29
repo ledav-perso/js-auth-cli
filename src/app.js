@@ -3,10 +3,42 @@ import express from 'express';
 import session from 'express-session';
 import { createClient } from 'redis';
 import { auth } from 'express-openid-connect';
-import { RedisStore } from "connect-redis"
+import { RedisStore } from "connect-redis";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+import oidcRouter from './routes/oidc.js';
 
 const app = express();
+
+// Pug renderer
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, '../views'));
+
+// Public files (CSS)
+app.use(express.static(path.join(__dirname, '../public')));
+
+// Route
+app.get('/', (req, res) => {
+    res.render('index', { title: 'Accueil' });
+    //res.send(req.oidc.isAuthenticated()
+    //    ? `<h2>Connecté</h2><a href="/profile">Profil</a><br><a href="/logout">Logout</a>`
+    //    : `<h2>Non connecté</h2><a href="/login">Login</a>`);
+});
+
+app.use('/oidc', oidcRouter);
+
+// Route GET /profile
+app.get('/profile', (req, res) => {
+    res.send('Page de profil');
+});
+
+// Route POST /logout
+app.post('/logout', (req, res) => {
+    res.send('Déconnecté avec succès');
+});
 
 // 🔌 Redis client
 const redisClient = createClient({
@@ -43,13 +75,6 @@ const config = {
 };
 
 app.use(auth(config));
-
-// Routes
-app.get('/', (req, res) => {
-    res.send(req.oidc.isAuthenticated()
-        ? `<h2>Connecté</h2><a href="/profile">Profil</a><br><a href="/logout">Logout</a>`
-        : `<h2>Non connecté</h2><a href="/login">Login</a>`);
-});
 
 app.get('/profile', (req, res) => {
     if (!req.oidc.isAuthenticated()) return res.redirect('/login');
