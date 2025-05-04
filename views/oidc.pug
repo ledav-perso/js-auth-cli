@@ -7,10 +7,20 @@ html
 
     // Affichage des données JSON
     ul
-      li Nom : #{user.name}
+      li Compte : #{user.preferred_username}
+      li First name : #{user.given_name}
+      li Last name : #{user.family_name}
       li Email : #{user.email}
-      li Âge : #{user.age}
+      li Email verified ? #{user.email_verified}
+
+    // Formulaire de déconnexion
+    form(action="/oidc/userinfo", method="get")
+      button(type="submit") Userinfo endpoint test
 
     // Formulaire de déconnexion
     form(action="/oidc/logout", method="post")
       button(type="submit") Se déconnecter
+
+    // home
+    form(action="/", method="get")
+      button(type="submit") HOME
