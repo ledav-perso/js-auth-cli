@@ -7,8 +7,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import logger from './backend/logger.js';
-import redisStore from './backend/redisstore.js';
 import oidc from './backend/oidc.js';
+import store from './backend/store.js';
 
 import indexRouter from './routes/indexroute.js';
 import oidcRouter from './routes/oidcroute.js';
@@ -31,25 +31,24 @@ app.set('views', path.join(__dirname, '../views'));
 // static files (CSS)
 app.use(express.static(path.join(__dirname, '../public')));
 
-// session middleware
-const store = await redisStore.init();
-
+// session store middleware
 app.use(
   session({
-    store: store,
+    store: await store.initStore('oidc'),
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: 24 * 60 * 60 * 1000, // 1 jour
-      secure: false, // true si HTTPS
+      secure: false, // true en production avec HTTPS
       httpOnly: true,
+      maxAge: 4 * 60 * 1000, // 4 mn
     },
   }),
 );
 
 // OpenID connect middleware
-app.use(auth(oidc.getConfig()));
+const oidcConfig = oidc.getConfig();
+app.use(auth(oidcConfig));
 
 // Route
 app.get('/', indexRouter);

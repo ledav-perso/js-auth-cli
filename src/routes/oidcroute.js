@@ -1,5 +1,4 @@
 import express from 'express';
-import process from 'process';
 import idc from 'express-openid-connect';
 import util from 'util';
 
@@ -37,19 +36,18 @@ oidcRouter.get('/userinfo', requiresAuth(), async (req, res) => {
   res.send(`Userinfo : ${util.inspect(userInfo)}`);
 });
 
-oidcRouter.get('/logout', requiresAuth(), (req, res) => {
+oidcRouter.get('/logout', (req, res) => {
   logger.info('OIDC GET /logout');
-  const idToken = req.oidc.idToken;
-  const redirectUri = 'http://localhost:3000/';
-  const issuer = process.env.OIDC_ISSUER;
 
-  let logoutUrl = `${issuer}/protocol/openid-connect/logout?post_logout_redirect_uri=${encodeURIComponent(redirectUri)}`;
-  if (idToken) {
-    logoutUrl += `&id_token_hint=${encodeURIComponent(idToken)}`;
-  }
-
-  req.session.destroy(() => {
-    res.redirect(logoutUrl);
+  const redirectUri = encodeURIComponent('http://localhost:3000');
+  req.session.destroy((err) => {
+    if (err) {
+      logger.error(err, 'Erreur de suppression de session');
+      return res.status(500).send('Erreur lors de la déconnexion');
+    }
+    res.redirect(
+      `http://localhost:8080/realms/testsso/protocol/openid-connect/logout?redirect_uri=${redirectUri}`,
+    );
   });
 });
 
