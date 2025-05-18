@@ -1,26 +1,20 @@
-doctype html
-html
-  head
-    title Profil
-  body
-    h1 Profil OpenID Connect
+extends layout
 
-    // Affichage des données JSON
-    ul
-      li Compte : #{user.preferred_username}
-      li First name : #{user.given_name}
-      li Last name : #{user.family_name}
-      li Email : #{user.email}
-      li Email verified ? #{user.email_verified}
+block content
+  h1= title
 
-    // Formulaire de déconnexion
-    form(action="/oidc/userinfo", method="get")
-      button(type="submit") Userinfo endpoint test
+  // Affichage des données JSON
+  ul
+    li Compte : #{user.preferred_username}
+    li First name : #{user.given_name}
+    li Last name : #{user.family_name}
+    li Email : #{user.email}
+    li Email verified ? #{user.email_verified}
 
-    // Formulaire de déconnexion
-    form(action="/oidc/logout", method="get")
-      button(type="submit") Se déconnecter
-
-    // home
-    form(action="/", method="get")
-      button(type="submit") HOME
+  // Formulaire de déconnexion
+  form(action='/oidc/logout', method='get')
+    button(type='submit') Déconnexion
+  
+  // home
+  form(action="/", method="get")
+    button(type="submit") HOME

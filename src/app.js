@@ -1,25 +1,23 @@
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import process from 'process';
 import express from 'express';
 import session from 'express-session';
-import { auth } from 'express-openid-connect';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 import logger from './backend/logger.js';
-import oidc from './backend/oidc.js';
 import store from './backend/store.js';
 
 import indexRouter from './routes/indexroute.js';
 import oidcRouter from './routes/oidcroute.js';
 import samlRouter from './routes/samlroute.js';
 
-dotenv.config();
+// initialisation des LOG
 logger.level = process.env.LOG_LEVEL;
 logger.debug('app initializing...');
+//logger.debug(process.env, 'dotenv extracted variables');
 
-logger.debug(process.env, 'dotenv extracted variables');
-
+// initialisation express
 const app = express();
 
 // Pug renderer
@@ -41,21 +39,19 @@ app.use(
     cookie: {
       secure: false, // true en production avec HTTPS
       httpOnly: true,
-      maxAge: 4 * 60 * 1000, // 4 mn
+      maxAge: 10 * 60 * 1000, // 10 mn
     },
   }),
 );
 
-// OpenID connect middleware
-const oidcConfig = oidc.getConfig();
-app.use(auth(oidcConfig));
-
-// Route
+// public Route
 app.get('/', indexRouter);
+// private routes with OpenID connect authentification
 app.use('/oidc', oidcRouter);
+// private routes with SAML authentification
 app.use('/saml', samlRouter);
 
 // Start server
 app.listen(3000, () => {
-  logger.info('app initialized : http://localhost:3000');
+  logger.info(`app initialized : ${process.env.BASE_URL}`);
 });

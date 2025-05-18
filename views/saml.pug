@@ -1,11 +1,9 @@
-doctype html
-html
-  head
-    title Profil
-  body
-    h1 Profil SAML
-    p  SAML unavailable
+extends layout
 
-    // home
-    form(action="/", method="get")
-      button(type="submit") HOME
+block content
+  h1 Profil SAML
+  p  SAML unavailable
+
+  // home
+  form(action="/", method="get")
+    button(type="submit") HOME

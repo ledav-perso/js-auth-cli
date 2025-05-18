@@ -1,12 +1,13 @@
-doctype html
-html
-  head
-    title=index
-  body
-    h1 Application témoin OpenID Connect & SAML
+extends layout
 
+block content
+    h1= title
+
+    p Connexion avec OpenID connect
     form(action="/oidc", method="get")
-      button(type="submit") OpenID connect
+      button(type="submit") OIDC
 
+    p Connexion avec SAML 
     form(action="/saml", method="get")
       button(type="submit") SAML
+

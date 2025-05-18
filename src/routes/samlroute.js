@@ -5,7 +5,7 @@ const samlRouter = express.Router();
 
 samlRouter.get('/', (req, res) => {
   logger.info('SAML GET /');
-  res.render('saml', { title: 'Accueil' });
+  res.render('saml', { title: 'Profil SAML' });
 });
 
 export default samlRouter;
