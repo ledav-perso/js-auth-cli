@@ -32,6 +32,7 @@ function isAuthenticated(req, res, next) {
 
 oidcRouter.get('/', isAuthenticated, (req, res) => {
   logger.info('OIDC GET /');
+  //logger.debug(req, 'cache session local');
   logger.debug(req.session.user, 'user profile oidc');
 
   res.render('oidc', {
@@ -100,7 +101,8 @@ oidcRouter.get('/callback', async (req, res) => {
 
   // token claims
   logger.debug(result, 'Access Token Response');
-  const { access_token } = result;
+  const { access_token, refresh_token, expires_in } = result;
+  const expires_at = new Date(expires_in);
   const claims = oauth.getValidatedIdTokenClaims(result);
   logger.debug(claims, 'ID Token Claims');
   const { sub } = claims;
@@ -120,6 +122,8 @@ oidcRouter.get('/callback', async (req, res) => {
   logger.debug(resultUserInfo, 'UserInfo Response');
   req.session.user = resultUserInfo;
   req.session.oidc.access_token = access_token;
+  req.session.oidc.refresh_token = refresh_token;
+  req.session.oidc.expires_at = expires_at;
 
   res.redirect('/oidc');
 });
@@ -140,7 +144,12 @@ oidcRouter.get('/logout', isAuthenticated, async (req, res) => {
   if (resultRevocation === undefined) {
     logger.debug('OIDC provider session revocated');
     req.session.destroy((err) => {
-      logger.info(err, 'Express session destroyed');
+      if (err) {
+        logger.error(err, 'Erreur de destruction de session:');
+        return res.status(500).send('Erreur de logout');
+      }
+
+      res.clearCookie('connect.sid'); // ou le nom de ton cookie de session
       res.render('index');
     });
   }

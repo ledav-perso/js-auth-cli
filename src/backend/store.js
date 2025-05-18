@@ -10,7 +10,12 @@ async function initStore(prefix) {
   });
   await redisClient.connect();
 
-  return new RedisStore({ client: redisClient, prefix });
+  return new RedisStore({
+    client: redisClient,
+    prefix,
+    ttl: 10 * 60,
+    disableTouch: true,
+  });
 }
 
 export default { initStore };
