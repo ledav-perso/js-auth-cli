@@ -1,10 +1,10 @@
 import 'dotenv/config';
-import process from 'process';
 import express from 'express';
 import session from 'express-session';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import globals from './backend/globals.js';
 import logger from './backend/logger.js';
 import store from './backend/store.js';
 
@@ -13,9 +13,8 @@ import oidcRouter from './routes/oidcroute.js';
 import samlRouter from './routes/samlroute.js';
 
 // initialisation des LOG
-logger.level = process.env.LOG_LEVEL;
+logger.level = globals.get('LOG_LEVEL');
 logger.debug('app initializing...');
-//logger.debug(process.env, 'dotenv extracted variables');
 
 // initialisation express
 const app = express();
@@ -33,7 +32,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(
   session({
     store: await store.initStore('oidc'),
-    secret: process.env.SESSION_SECRET,
+    secret: globals.get('SESSION_SECRET'),
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -53,5 +52,5 @@ app.use('/saml', samlRouter);
 
 // Start server
 app.listen(3000, () => {
-  logger.info(`app initialized : ${process.env.BASE_URL}`);
+  logger.info(`app initialized : ${globals.get('BASE_URL')}`);
 });

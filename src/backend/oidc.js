@@ -1,15 +1,15 @@
-import process from 'process';
+import globals from './globals.js';
 import { URL } from 'url';
 import * as oauth from 'oauth4webapi';
 
 import logger from './logger.js';
 
-const issuer = process.env.OIDC_ISSUER;
+const issuer = globals.get('process.env.OIDC_ISSUER');
 const algorithm = 'oidc';
-const client_id = process.env.OIDC_CLIENT_ID;
-const client_secret = process.env.OIDC_CLIENT_SECRET;
+const client_id = globals.get('OIDC_CLIENT_ID');
+const client_secret = globals.get('OIDC_CLIENT_SECRET');
 const code_challenge_method = 'S256';
-const redirect_uri = process.env.OIDC_CALLBACK_LOGIN;
+const redirect_uri = globals.get('OIDC_CALLBACK_LOGIN');
 
 async function getAuthURL(store) {
   logger.info('OIDC / getAuthURL');

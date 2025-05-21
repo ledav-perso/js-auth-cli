@@ -1,19 +1,19 @@
 import express from 'express';
-import process from 'process';
 import { URL } from 'url';
 import * as oauth from 'oauth4webapi';
 
+import globals from '../backend/globals.js';
 import logger from '../backend/logger.js';
 
 const oidcRouter = express.Router();
 
 // environment variables
-const issuer = new URL(process.env.OIDC_ISSUER);
+const issuer = new URL(globals.get('OIDC_ISSUER'));
 const algorithm = 'oidc';
-const client_id = process.env.OIDC_CLIENT_ID;
-const client_secret = process.env.OIDC_CLIENT_SECRET;
+const client_id = globals.get('OIDC_CLIENT_ID');
+const client_secret = globals.get('OIDC_CLIENT_SECRET');
 const code_challenge_method = 'S256';
-const redirect_uri = process.env.OIDC_CALLBACK_LOGIN;
+const redirect_uri = globals.get('OIDC_CALLBACK_LOGIN');
 
 // authorization server
 const as = await oauth
@@ -77,7 +77,7 @@ oidcRouter.get('/callback', async (req, res) => {
   logger.info('OIDC GET /callback');
 
   // Authorization Code Grant Request & Response
-  const currentUrl = new URL(`${process.env.BASE_URL}${req.url}`);
+  const currentUrl = new URL(`${globals.get('BASE_URL')}${req.url}`);
   const params = oauth.validateAuthResponse(as, client, currentUrl);
 
   const response = await oauth.authorizationCodeGrantRequest(

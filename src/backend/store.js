@@ -1,4 +1,4 @@
-import process from 'process';
+import globals from './globals.js';
 import { createClient } from 'redis';
 import { RedisStore } from 'connect-redis';
 
@@ -6,7 +6,7 @@ async function initStore(prefix) {
   // 🔌 Redis client
   const redisClient = createClient({
     legacyMode: true,
-    url: process.env.REDIS_URL,
+    url: globals.get('REDIS_URL'),
   });
   await redisClient.connect();
 
